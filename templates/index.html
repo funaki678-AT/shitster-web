@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shitster – Karten-Generator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:   #1DB954;
+      --green-d: #17943f;
+      --black:   #191414;
+      --card:    #242020;
+      --card2:   #2e2929;
+      --text:    #ffffff;
+      --muted:   #b3b3b3;
+      --border:  #3a3535;
+      --danger:  #e53935;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--black);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    a { color: var(--green); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 40px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--black);
+      z-index: 100;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+    .logo svg { width: 44px; height: 44px; }
+    .logo span { color: var(--green); }
+
+    .header-links { display: flex; align-items: center; gap: 16px; }
+    .btn-small {
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-small:hover { background: var(--green-d); transform: scale(1.04); text-decoration: none; }
+    .btn-small.outline {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+    }
+    .btn-small.outline:hover { border-color: var(--green); color: var(--green); background: transparent; }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 80px 24px 60px;
+    }
+    .vinyl {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 28px;
+      animation: spin 8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .hero h1 {
+      font-size: clamp(32px, 6vw, 56px);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .hero h1 span { color: var(--green); }
+    .hero p {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto 40px;
+      line-height: 1.6;
+    }
+
+    /* ── Scanner CTA ── */
+    .scanner-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--card);
+      border: 1.5px solid var(--green);
+      border-radius: 40px;
+      padding: 12px 28px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--green);
+      cursor: pointer;
+      transition: background .2s;
+      text-decoration: none;
+    }
+    .scanner-cta:hover { background: #1db95420; text-decoration: none; }
+
+    /* ── Steps ── */
+    .steps {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      padding: 0 24px 70px;
+      flex-wrap: wrap;
+    }
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      max-width: 200px;
+      padding: 0 24px;
+      position: relative;
+    }
+    .step:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -10px;
+      top: 20px;
+      color: var(--border);
+      font-size: 20px;
+    }
+    .step-num {
+      width: 44px; height: 44px;
+      background: var(--green);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px;
+      margin-bottom: 12px;
+    }
+    .step h3 { font-size: 15px; margin-bottom: 6px; }
+    .step p  { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+    /* ── Generator Card ── */
+    .section {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+    .card-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px;
+    }
+    .card-box h2 {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Spotify Login */
+    .spotify-login {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 28px;
+    }
+    .spotify-login.connected { border-color: var(--green); }
+    .spotify-icon { font-size: 32px; }
+    .spotify-login-text { flex: 1; }
+    .spotify-login-text strong { display: block; font-size: 15px; margin-bottom: 3px; }
+    .spotify-login-text span { font-size: 13px; color: var(--muted); }
+
+    /* Playlist inputs */
+    .playlist-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 10px;
+      display: block;
+    }
+    .playlist-inputs { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+    .playlist-row { display: flex; gap: 8px; align-items: center; }
+    .playlist-row input {
+      flex: 1;
+      background: var(--card2);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: white;
+      font-size: 14px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .playlist-row input:focus { border-color: var(--green); }
+    .playlist-row input::placeholder { color: #666; }
+    .btn-remove {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: color .2s;
+    }
+    .btn-remove:hover { color: var(--danger); }
+
+    .btn-add {
+      background: none;
+      border: 1.5px dashed var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      padding: 10px;
+      width: 100%;
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
+      margin-bottom: 28px;
+    }
+    .btn-add:hover { border-color: var(--green); color: var(--green); }
+
+    .btn-generate {
+      width: 100%;
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+    }
+    .btn-generate:hover:not(:disabled) { background: var(--green-d); transform: scale(1.02); }
+    .btn-generate:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* Progress */
+    .progress-box { margin-top: 28px; display: none; }
+    .progress-msg { font-size: 14px; color: var(--muted); margin-bottom: 10px; }
+    .progress-track {
+      background: var(--card2);
+      border-radius: 8px;
+      height: 8px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--green);
+      border-radius: 8px;
+      transition: width .4s ease;
+      width: 0%;
+    }
+
+    /* Download */
+    .download-box {
+      margin-top: 28px;
+      display: none;
+      background: var(--card2);
+      border: 1.5px solid var(--green);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+    }
+    .download-box h3 { font-size: 17px; margin-bottom: 6px; }
+    .download-box p  { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+    .download-btns   { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background .2s;
+    }
+    .btn-download:hover { background: var(--green-d); text-decoration: none; }
+    .btn-download.secondary {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      color: var(--text);
+    }
+    .btn-download.secondary:hover { border-color: var(--green); color: var(--green); background: var(--card); }
+
+    .print-hint {
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* Error */
+    .error-box {
+      margin-top: 20px;
+      background: #3d1515;
+      border: 1px solid var(--danger);
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 14px;
+      color: #ff8888;
+      display: none;
+    }
+
+    /* ── PWA Anleitung ── */
+    .pwa-section {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+    .pwa-section h2 {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .pwa-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .pwa-tab {
+      background: var(--card2);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 8px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all .2s;
+    }
+    .pwa-tab.active { border-color: var(--green); color: var(--green); background: #1db95415; }
+
+    .pwa-steps { display: none; }
+    .pwa-steps.active { display: block; }
+
+    .pwa-step-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .pwa-step-item:last-child { border-bottom: none; }
+    .pwa-step-num {
+      width: 30px; height: 30px;
+      min-width: 30px;
+      background: var(--green);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 14px;
+    }
+    .pwa-step-item p { font-size: 14px; line-height: 1.6; color: var(--muted); margin-top: 2px; }
+    .pwa-step-item strong { color: white; }
+
+    .scanner-link-big {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--card);
+      border: 1.5px solid var(--green);
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 32px;
+      text-decoration: none;
+      transition: background .2s;
+    }
+    .scanner-link-big:hover { background: #1db95415; text-decoration: none; }
+    .scanner-link-big .left strong { display: block; font-size: 16px; margin-bottom: 4px; color: white; }
+    .scanner-link-big .left span { font-size: 13px; color: var(--muted); }
+    .scanner-link-big .arrow { font-size: 24px; color: var(--green); }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 28px 24px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      header { padding: 16px 20px; }
+      .hero  { padding: 50px 20px 40px; }
+      .step:not(:last-child)::after { display: none; }
+      .steps { gap: 24px; }
+      .card-box { padding: 24px 20px; }
+      .download-btns { flex-direction: column; }
+      .btn-download  { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <div class="logo">
+    <!-- Vinyl SVG -->
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="48" fill="#111"/>
+      <circle cx="50" cy="50" r="44" fill="#1DB954"/>
+      <circle cx="50" cy="50" r="34" fill="#191414"/>
+      <circle cx="50" cy="50" r="24" fill="#222"/>
+      <circle cx="50" cy="50" r="14" fill="#1a1a1a"/>
+      <circle cx="50" cy="50" r="6"  fill="#1DB954"/>
+      <circle cx="50" cy="50" r="38" fill="none" stroke="#333" stroke-width="1.5"/>
+      <circle cx="50" cy="50" r="29" fill="none" stroke="#333" stroke-width="1"/>
+    </svg>
+    SHIT<span>STER</span>
+  </div>
+  <div class="header-links">
+    {% if authenticated %}
+      <a href="/logout" class="btn-small outline">Abmelden</a>
+    {% else %}
+      <a href="/login" class="btn-small">Mit Spotify anmelden</a>
+    {% endif %}
+  </div>
+</header>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <svg class="vinyl" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="48" fill="#111"/>
+    <circle cx="50" cy="50" r="44" fill="#1DB954"/>
+    <circle cx="50" cy="50" r="34" fill="#191414"/>
+    <circle cx="50" cy="50" r="24" fill="#222"/>
+    <circle cx="50" cy="50" r="14" fill="#1a1a1a"/>
+    <circle cx="50" cy="50" r="6"  fill="#1DB954"/>
+    <circle cx="50" cy="50" r="38" fill="none" stroke="#333" stroke-width="1.5"/>
+    <circle cx="50" cy="50" r="29" fill="none" stroke="#333" stroke-width="1"/>
+  </svg>
+  <h1>Deine Musik.<br/><span>Dein Spiel.</span></h1>
+  <p>Erstelle deine eigenen Hitster-Karten aus jeder Spotify-Playlist – kostenlos, in Sekunden, druckfertig.</p>
+  <a href="https://funaki678-AT.github.io/hitster-player/" target="_blank" class="scanner-cta">
+    📷 &nbsp; Zur Scanner-App
+  </a>
+</section>
+
+<!-- ── Steps ── -->
+<div class="steps">
+  <div class="step">
+    <div class="step-num">1</div>
+    <h3>Playlist wählen</h3>
+    <p>Deine Spotify-Playlist URL eingeben</p>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <h3>Karten generieren</h3>
+    <p>PDFs mit QR-Codes werden erstellt</p>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <h3>Drucken & spielen</h3>
+    <p>Ausdrucken, ausschneiden, losspielen!</p>
+  </div>
+</div>
+
+<!-- ── Generator ── -->
+<div class="section">
+  <div class="card-box">
+    <h2>🎴 Karten erstellen</h2>
+
+    <!-- Spotify Login Status -->
+    <div class="spotify-login {% if authenticated %}connected{% endif %}">
+      <div class="spotify-icon">🎵</div>
+      <div class="spotify-login-text">
+        {% if authenticated %}
+          <strong>Mit Spotify verbunden ✓</strong>
+          <span>Du kannst jetzt deine Playlists laden</span>
+        {% else %}
+          <strong>Spotify-Konto verbinden</strong>
+          <span>Nötig um deine Playlists zu lesen</span>
+        {% endif %}
+      </div>
+      {% if not authenticated %}
+        <a href="/login" class="btn-small">Anmelden</a>
+      {% endif %}
+    </div>
+
+    <!-- Playlist URLs -->
+    <label class="playlist-label">Spotify Playlist URL(s)</label>
+    <div class="playlist-inputs" id="playlist-inputs">
+      <div class="playlist-row">
+        <input type="url" placeholder="https://open.spotify.com/playlist/..." class="playlist-url"/>
+      </div>
+    </div>
+    <button class="btn-add" onclick="addPlaylist()">+ Weitere Playlist hinzufügen</button>
+
+    <!-- Generate Button -->
+    <button class="btn-generate" id="btn-generate"
+            onclick="generate()"
+            {% if not authenticated %}disabled{% endif %}>
+      {% if authenticated %}
+        🎨 Karten generieren
+      {% else %}
+        Zuerst mit Spotify anmelden
+      {% endif %}
+    </button>
+
+    <!-- Progress -->
+    <div class="progress-box" id="progress-box">
+      <div class="progress-msg" id="progress-msg">Starte…</div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div class="error-box" id="error-box"></div>
+
+    <!-- Download -->
+    <div class="download-box" id="download-box">
+      <h3>🎉 Karten sind fertig!</h3>
+      <p id="download-subtitle">Lade beide PDFs herunter und drucke sie doppelseitig.</p>
+      <div class="download-btns">
+        <a id="btn-front" class="btn-download" href="#">⬇ Vorderseiten (QR-Codes)</a>
+        <a id="btn-back"  class="btn-download secondary" href="#">⬇ Rückseiten (Infos)</a>
+      </div>
+      <div class="print-hint">
+        🖨️ <strong>Druckanleitung:</strong> Zuerst Vorderseiten drucken → Blätter umdrehen (lange Kante) → Rückseiten drucken → Ausschneiden. Vorder- und Rückseite passen automatisch zusammen.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── PWA Anleitung ── -->
+<div class="pwa-section">
+  <h2>📱 Scanner-App einrichten</h2>
+
+  <a href="https://funaki678-AT.github.io/hitster-player/" target="_blank" class="scanner-link-big">
+    <div class="left">
+      <strong>Shitster Scanner öffnen</strong>
+      <span>funaki678-AT.github.io/hitster-player</span>
+    </div>
+    <div class="arrow">→</div>
+  </a>
+
+  <div class="pwa-tabs">
+    <button class="pwa-tab active" onclick="showTab('iphone', this)">📱 iPhone</button>
+    <button class="pwa-tab"        onclick="showTab('android', this)">🤖 Android</button>
+  </div>
+
+  <div class="pwa-steps active" id="tab-iphone">
+    <div class="pwa-step-item">
+      <div class="pwa-step-num">1</div>
+      <p>Öffne den Link oben in <strong>Safari</strong> (nicht Chrome oder Firefox)</p>
+    </div>
+    <div class="pwa-step-item">
+      <div class="pwa-step-num">2</div>
+      <p>Tippe auf das <strong>Teilen-Symbol</strong> unten in der Mitte (Kästchen mit Pfeil nach oben)</p>
+    </div>
+    <div class="pwa-step-item">
+      <div class="pwa-step-num">3</div>
+      <p>Scrolle nach unten und tippe auf <strong>„Zum Home-Bildschirm"</strong></p>
+    </div>
+    <div class="pwa-step-item">
+      <div class="pwa-step-num">4</div>
+      <p>Tippe oben rechts auf <strong>„Hinzufügen"</strong> – fertig! Das Shitster-Icon erscheint am Homescreen.</p>
+    </div>
+    <div class="pwa-step-item">
+      <div class="pwa-step-num">5</div>
+      <p>App öffnen, einmalig mit <strong>Spotify Premium</strong> anmelden – danach QR-Code scannen und Musik startet automatisch 🎵</p>
+    </div>
+  </div>
+
+  <div class="pwa-steps" id="tab-android">
+    <div class="pwa-step-item">
+      <div class="pwa-step-num">1</div>
+      <p>Öffne den Link oben in <strong>Chrome</strong></p>
+    </div>
+    <div class="pwa-step-item">
+      <div class="pwa-step-num">2</div>
+      <p>Tippe auf die <strong>drei Punkte</strong> oben rechts</p>
+    </div>
+    <div class="pwa-step-item">
+      <div class="pwa-step-num">3</div>
+      <p>Tippe auf <strong>„Zum Startbildschirm hinzufügen"</strong></p>
+    </div>
+    <div class="pwa-step-item">
+      <div class="pwa-step-num">4</div>
+      <p>Bestätige mit <strong>„Hinzufügen"</strong> – das Shitster-Icon erscheint am Homescreen.</p>
+    </div>
+    <div class="pwa-step-item">
+      <div class="pwa-step-num">5</div>
+      <p>App öffnen, einmalig mit <strong>Spotify Premium</strong> anmelden – danach QR-Code scannen und Musik startet automatisch 🎵</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Footer ── -->
+<footer>
+  Gemacht mit 🎵 &nbsp;·&nbsp; <a href="https://funaki678-AT.github.io/hitster-player/" target="_blank">Scanner-App öffnen</a>
+</footer>
+
+<script>
+  // ── Playlist-Zeilen ───────────────────────────────────────────────────────
+  function addPlaylist() {
+    const container = document.getElementById("playlist-inputs");
+    const row = document.createElement("div");
+    row.className = "playlist-row";
+    row.innerHTML = `
+      <input type="url" placeholder="https://open.spotify.com/playlist/..." class="playlist-url"/>
+      <button class="btn-remove" onclick="this.parentElement.remove()" title="Entfernen">✕</button>
+    `;
+    container.appendChild(row);
+    row.querySelector("input").focus();
+  }
+
+  // ── PWA Tabs ─────────────────────────────────────────────────────────────
+  function showTab(id, btn) {
+    document.querySelectorAll(".pwa-steps").forEach(el => el.classList.remove("active"));
+    document.querySelectorAll(".pwa-tab").forEach(el => el.classList.remove("active"));
+    document.getElementById("tab-" + id).classList.add("active");
+    btn.classList.add("active");
+  }
+
+  // ── Generierung ───────────────────────────────────────────────────────────
+  let currentJobId = null;
+  let pollTimer    = null;
+
+  async function generate() {
+    const urls = [...document.querySelectorAll(".playlist-url")]
+      .map(i => i.value.trim())
+      .filter(Boolean);
+
+    if (!urls.length) {
+      showError("Bitte mindestens eine Playlist-URL eingeben.");
+      return;
+    }
+
+    // UI zurücksetzen
+    document.getElementById("download-box").style.display  = "none";
+    document.getElementById("error-box").style.display     = "none";
+    document.getElementById("progress-box").style.display  = "block";
+    document.getElementById("btn-generate").disabled       = true;
+    setProgress(0, "Starte…");
+
+    try {
+      const res  = await fetch("/generate", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ playlists: urls }),
+      });
+      const data = await res.json();
+      if (data.error) { showError(data.error); return; }
+      currentJobId = data.job_id;
+      pollTimer    = setInterval(pollStatus, 800);
+    } catch (e) {
+      showError("Netzwerkfehler: " + e.message);
+    }
+  }
+
+  async function pollStatus() {
+    if (!currentJobId) return;
+    const res  = await fetch(`/status/${currentJobId}`);
+    const data = await res.json();
+
+    setProgress(data.progress || 0, data.message || "");
+
+    if (data.status === "done") {
+      clearInterval(pollTimer);
+      showDownload(currentJobId, data.track_count);
+    } else if (data.status === "error") {
+      clearInterval(pollTimer);
+      showError(data.message);
+    }
+  }
+
+  function setProgress(pct, msg) {
+    document.getElementById("progress-fill").style.width = pct + "%";
+    document.getElementById("progress-msg").textContent  = msg;
+  }
+
+  function showDownload(jobId, count) {
+    document.getElementById("progress-box").style.display = "none";
+    document.getElementById("btn-generate").disabled      = false;
+    const box = document.getElementById("download-box");
+    box.style.display = "block";
+    document.getElementById("download-subtitle").textContent =
+      `${count} Karten erstellt – lade beide PDFs herunter und drucke sie doppelseitig.`;
+    document.getElementById("btn-front").href = `/download/${jobId}/front`;
+    document.getElementById("btn-back").href  = `/download/${jobId}/back`;
+  }
+
+  function showError(msg) {
+    document.getElementById("progress-box").style.display = "none";
+    document.getElementById("btn-generate").disabled      = false;
+    const box = document.getElementById("error-box");
+    box.style.display  = "block";
+    box.textContent    = "⚠️ " + msg;
+  }
+</script>
+</body>
+</html>
