@@ -48,7 +48,9 @@
       font-size: 22px;
       font-weight: 800;
       letter-spacing: 1px;
+      white-space: nowrap;
     }
+    .logo span { letter-spacing: 1px; }
     .logo svg { width: 44px; height: 44px; }
     .logo span { color: var(--green); }
 
@@ -438,7 +440,7 @@
       <circle cx="50" cy="50" r="38" fill="none" stroke="#333" stroke-width="1.5"/>
       <circle cx="50" cy="50" r="29" fill="none" stroke="#333" stroke-width="1"/>
     </svg>
-    SHIT<span>STER</span>
+    SHIT<span style="margin-left:0;letter-spacing:1px">STER</span>
   </div>
   <div class="header-links">
     {% if authenticated %}
