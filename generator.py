@@ -80,8 +80,8 @@ def make_back(track):
 
     f_artist   = load_font("bold",    int(PX * 0.090))
     f_year     = load_font("bold",    int(PX * 0.30))
-    f_title    = load_font("italic",  int(PX * 0.078))
-    f_playlist = load_font("regular", int(PX * 0.050))
+    f_title    = load_font("italic",  int(PX * 0.090))
+    f_playlist = load_font("regular", int(PX * 0.042))
 
     artist_lines = wrap_text(track["artists"], f_artist, max_w)[:2]
     draw_multiline(d, artist_lines, f_artist, PX//2, pad + int(PX*0.02), WHITE, 1.15)
@@ -95,9 +95,9 @@ def make_back(track):
     draw_multiline(d, title_lines, f_title, PX//2, title_y, WHITE, 1.2)
 
     pl = track["playlist"]
-    if len(pl) > 32: pl = pl[:30] + "…"
+    if len(pl) > 36: pl = pl[:34] + "…"
     d.text((PX//2, PX - pad + int(PX*0.01)), pl,
-           font=f_playlist, fill=(255,255,255,160), anchor="mb")
+           font=f_playlist, fill=(255,255,255,140), anchor="mb")
 
     return img
 
