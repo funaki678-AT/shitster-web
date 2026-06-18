@@ -90,9 +90,14 @@ def download(job_id, side):
     job = jobs.get(job_id)
     if not job or job["status"] != "done":
         return "Nicht gefunden", 404
-    path = job["front_path"] if side == "front" else job["back_path"]
-    name = ("shitster_vorderseiten.pdf" if side == "front"
-            else "shitster_rueckseiten.pdf")
+    if side == "front":
+        path, name = job["front_path"],  "shitster_vorderseiten.pdf"
+    elif side == "back":
+        path, name = job["back_path"],   "shitster_rueckseiten.pdf"
+    elif side == "duplex":
+        path, name = job["duplex_path"], "shitster_duplex.pdf"
+    else:
+        return "Ungültige Seite", 400
     return send_file(path, as_attachment=True, download_name=name)
 
 # ── Hintergrund-Job ───────────────────────────────────────────────────────────
@@ -128,15 +133,16 @@ def run_generation(job_id, token, playlist_urls):
             jobs[job_id]["progress"] = 20 + int(current / total * 75)
             jobs[job_id]["message"]  = f"Erstelle Karte {current} von {total}…"
 
-        front, back = generate_pdfs_from_tracks(all_tracks, out_dir, progress_cb)
+        front, back, duplex = generate_pdfs_from_tracks(all_tracks, out_dir, progress_cb)
 
         jobs[job_id] = {
-            "status":      "done",
-            "progress":    100,
-            "message":     f"{len(all_tracks)} Karten erfolgreich erstellt!",
-            "front_path":  front,
-            "back_path":   back,
-            "track_count": len(all_tracks),
+            "status":       "done",
+            "progress":     100,
+            "message":      f"{len(all_tracks)} Karten erfolgreich erstellt!",
+            "front_path":   front,
+            "back_path":    back,
+            "duplex_path":  duplex,
+            "track_count":  len(all_tracks),
         }
     except Exception as e:
         jobs[job_id] = {

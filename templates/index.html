@@ -479,11 +479,15 @@
       <h3 data-i18n="download_title">🎉 Cards are ready!</h3>
       <p id="download-subtitle"></p>
       <div class="download-btns">
-        <a id="btn-front" class="btn-download" href="#">⬇ <span data-i18n="download_front">Fronts (QR Codes)</span></a>
-        <a id="btn-back"  class="btn-download secondary" href="#">⬇ <span data-i18n="download_back">Backs (Info)</span></a>
+        <a id="btn-front"  class="btn-download"           href="#">⬇ <span data-i18n="download_front">Fronts (QR Codes)</span></a>
+        <a id="btn-back"   class="btn-download secondary" href="#">⬇ <span data-i18n="download_back">Backs (Info)</span></a>
+        <a id="btn-duplex" class="btn-download secondary" href="#">⬇ <span data-i18n="download_duplex">Combined (Duplex)</span></a>
       </div>
-      <div class="print-hint" data-i18n="print_hint">
+      <div class="print-hint" id="print-hint-separate" data-i18n="print_hint">
         🖨️ Print fronts first → flip paper (long edge) → print backs → cut out. Fronts and backs align automatically.
+      </div>
+      <div class="print-hint" id="print-hint-duplex" data-i18n="print_hint_duplex" style="margin-top:8px">
+        🖨️ Duplex PDF: odd pages = fronts, even pages = backs — send to printer with duplex/double-sided enabled.
       </div>
     </div>
   </div>
@@ -584,8 +588,10 @@ const T = {
     download_title:      "🎉 Cards are ready!",
     download_front:      "Fronts (QR Codes)",
     download_back:       "Backs (Info)",
-    download_subtitle:   (n) => `${n} cards created – download both PDFs and print double-sided.`,
-    print_hint:          "🖨️ Print fronts first → flip paper (long edge) → print backs → cut out. Fronts and backs align automatically.",
+    download_duplex:     "Combined (Duplex)",
+    download_subtitle:   (n) => `${n} cards created – download and print.`,
+    print_hint:          "🖨️ Manual duplex: print Fronts first → flip paper (long edge) → print Backs → cut out.",
+    print_hint_duplex:   "🖨️ Duplex PDF: odd pages = fronts, even pages = backs – enable duplex/double-sided in your printer settings.",
     pwa_title:           "Set Up Scanner App",
     pwa_open:            "Open Shitster Scanner",
     ios1: "Open the link above in <strong>Safari</strong> (not Chrome or Firefox)",
@@ -627,8 +633,10 @@ const T = {
     download_title:      "🎉 Karten sind fertig!",
     download_front:      "Vorderseiten (QR-Codes)",
     download_back:       "Rückseiten (Infos)",
-    download_subtitle:   (n) => `${n} Karten erstellt – lade beide PDFs herunter und drucke sie doppelseitig.`,
-    print_hint:          "🖨️ Zuerst Vorderseiten drucken → Blätter umdrehen (lange Kante) → Rückseiten drucken → Ausschneiden. Vorder- und Rückseite passen automatisch zusammen.",
+    download_duplex:     "Kombiniert (Duplex)",
+    download_subtitle:   (n) => `${n} Karten erstellt – herunterladen und drucken.`,
+    print_hint:          "🖨️ Manueller Duplex: Zuerst Vorderseiten drucken → Blätter umdrehen (lange Kante) → Rückseiten drucken → Ausschneiden.",
+    print_hint_duplex:   "🖨️ Duplex-PDF: ungerade Seiten = Vorderseiten, gerade Seiten = Rückseiten – doppelseitigen Druck in den Druckereinstellungen aktivieren.",
     pwa_title:           "Scanner-App einrichten",
     pwa_open:            "Shitster Scanner öffnen",
     ios1: "Öffne den Link oben in <strong>Safari</strong> (nicht Chrome oder Firefox)",
@@ -757,8 +765,9 @@ function showDownload(jobId, count) {
   const box = document.getElementById("download-box");
   box.style.display = "block";
   document.getElementById("download-subtitle").textContent = T[lang].download_subtitle(count);
-  document.getElementById("btn-front").href = `/download/${jobId}/front`;
-  document.getElementById("btn-back").href  = `/download/${jobId}/back`;
+  document.getElementById("btn-front").href  = `/download/${jobId}/front`;
+  document.getElementById("btn-back").href   = `/download/${jobId}/back`;
+  document.getElementById("btn-duplex").href = `/download/${jobId}/duplex`;
 }
 
 function showError(msg) {

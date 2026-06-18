@@ -124,6 +124,16 @@ def pil_to_rl(img):
     buf.seek(0)
     return ImageReader(buf)
 
+def _draw_cut_lines(cv, start_x, start_y, total_w, total_h, card_pt, gap_pt):
+    cv.setStrokeColorRGB(0.7, 0.7, 0.7)
+    cv.setLineWidth(0.3)
+    for c in range(COLS+1):
+        lx = start_x + c*(card_pt+gap_pt) - (gap_pt/2 if 0<c<COLS else 0)
+        cv.line(lx, start_y-5, lx, start_y+total_h+5)
+    for r in range(ROWS+1):
+        ly = start_y + r*(card_pt+gap_pt) - (gap_pt/2 if 0<r<ROWS else 0)
+        cv.line(start_x-5, ly, start_x+total_w+5, ly)
+
 def generate_pdfs_from_tracks(tracks, out_dir, progress_callback=None):
     page_w, page_h = A4
     card_pt = 66 * mm
@@ -134,47 +144,75 @@ def generate_pdfs_from_tracks(tracks, out_dir, progress_callback=None):
     start_y = (page_h - total_h) / 2
     per_page = COLS * ROWS
 
-    front_path = os.path.join(out_dir, "shitster_vorderseiten.pdf")
-    back_path  = os.path.join(out_dir, "shitster_rueckseiten.pdf")
-    front_cv   = pdfcanvas.Canvas(front_path, pagesize=A4)
-    back_cv    = pdfcanvas.Canvas(back_path,  pagesize=A4)
+    front_path  = os.path.join(out_dir, "shitster_vorderseiten.pdf")
+    back_path   = os.path.join(out_dir, "shitster_rueckseiten.pdf")
+    duplex_path = os.path.join(out_dir, "shitster_duplex.pdf")
+
+    front_cv  = pdfcanvas.Canvas(front_path,  pagesize=A4)
+    back_cv   = pdfcanvas.Canvas(back_path,   pagesize=A4)
+    duplex_cv = pdfcanvas.Canvas(duplex_path, pagesize=A4)
 
     pages = math.ceil(len(tracks) / per_page)
     total = len(tracks)
+
+    # Pre-render all card images so we can reuse them for the duplex PDF
+    # (avoids regenerating QR codes / PIL images twice)
+    rendered = []  # list of (front_rl, back_rl) per track slot
 
     for page in range(pages):
         page_tracks = tracks[page*per_page:(page+1)*per_page]
         while len(page_tracks) < per_page:
             page_tracks.append(None)
 
+        page_rendered = []
         for pos, track in enumerate(page_tracks):
-            if track is None: continue
+            if track is None:
+                page_rendered.append(None)
+                continue
             col = pos % COLS
             row = pos // COLS
             x_f = start_x + col * (card_pt + gap_pt)
             y_f = start_y + (ROWS-1-row) * (card_pt + gap_pt)
             x_b = start_x + (COLS-1-col) * (card_pt + gap_pt)
 
-            front_cv.drawImage(pil_to_rl(make_front(track)), x_f, y_f, card_pt, card_pt)
-            back_cv.drawImage( pil_to_rl(make_back(track)),  x_b, y_f, card_pt, card_pt)
+            front_rl = pil_to_rl(make_front(track))
+            back_rl  = pil_to_rl(make_back(track))
+            page_rendered.append((col, row, x_f, y_f, x_b, front_rl, back_rl))
+
+            front_cv.drawImage(front_rl, x_f, y_f, card_pt, card_pt)
+            back_cv.drawImage( back_rl,  x_b, y_f, card_pt, card_pt)
 
             if progress_callback:
                 progress_callback(page * per_page + pos + 1, total)
 
+        rendered.append(page_rendered)
+
         for cv in (front_cv, back_cv):
-            cv.setStrokeColorRGB(0.7, 0.7, 0.7)
-            cv.setLineWidth(0.3)
-            for c in range(COLS+1):
-                lx = start_x + c*(card_pt+gap_pt) - (gap_pt/2 if 0<c<COLS else 0)
-                cv.line(lx, start_y-5, lx, start_y+total_h+5)
-            for r in range(ROWS+1):
-                ly = start_y + r*(card_pt+gap_pt) - (gap_pt/2 if 0<r<ROWS else 0)
-                cv.line(start_x-5, ly, start_x+total_w+5, ly)
+            _draw_cut_lines(cv, start_x, start_y, total_w, total_h, card_pt, gap_pt)
             cv.showPage()
+
+    # Build duplex PDF: front page then back page alternating
+    for page_rendered in rendered:
+        # Front page
+        for slot in page_rendered:
+            if slot is None: continue
+            col, row, x_f, y_f, x_b, front_rl, back_rl = slot
+            duplex_cv.drawImage(front_rl, x_f, y_f, card_pt, card_pt)
+        _draw_cut_lines(duplex_cv, start_x, start_y, total_w, total_h, card_pt, gap_pt)
+        duplex_cv.showPage()
+
+        # Back page (mirrored columns, same as back_cv)
+        for slot in page_rendered:
+            if slot is None: continue
+            col, row, x_f, y_f, x_b, front_rl, back_rl = slot
+            duplex_cv.drawImage(back_rl, x_b, y_f, card_pt, card_pt)
+        _draw_cut_lines(duplex_cv, start_x, start_y, total_w, total_h, card_pt, gap_pt)
+        duplex_cv.showPage()
 
     front_cv.save()
     back_cv.save()
-    return front_path, back_path
+    duplex_cv.save()
+    return front_path, back_path, duplex_path
 
 def get_tracks_from_playlist(sp, playlist_url):
     playlist_id = playlist_url.strip().split("/")[-1].split("?")[0]
