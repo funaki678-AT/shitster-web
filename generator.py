@@ -6,7 +6,7 @@ from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas as pdfcanvas
 from reportlab.lib.utils import ImageReader
 
-PLAYER_URL = "https://funaki678-AT.github.io/hitster-player"
+PLAYER_URL = "https://funaki678-at.github.io/hitster-player"
 DPI    = 150
 PX     = int(66 / 25.4 * DPI)
 COLS   = 3
