@@ -11,7 +11,7 @@ DPI    = 150
 PX     = int(66 / 25.4 * DPI)
 COLS   = 3
 ROWS   = 4
-GAP_MM = 2
+GAP_MM = 0
 
 DECADE_COLORS = {
     1950: ("#311B92", "#4527A0"),
@@ -125,14 +125,15 @@ def pil_to_rl(img):
     return ImageReader(buf)
 
 def _draw_cut_lines(cv, start_x, start_y, total_w, total_h, card_pt, gap_pt):
-    cv.setStrokeColorRGB(0.7, 0.7, 0.7)
-    cv.setLineWidth(0.3)
+    page_w, page_h = A4
+    cv.setStrokeColorRGB(0.5, 0.5, 0.5)
+    cv.setLineWidth(0.25)
     for c in range(COLS+1):
-        lx = start_x + c*(card_pt+gap_pt) - (gap_pt/2 if 0<c<COLS else 0)
-        cv.line(lx, start_y-5, lx, start_y+total_h+5)
+        lx = start_x + c * card_pt  # gap_pt is 0, kept for clarity
+        cv.line(lx, 0, lx, page_h)
     for r in range(ROWS+1):
-        ly = start_y + r*(card_pt+gap_pt) - (gap_pt/2 if 0<r<ROWS else 0)
-        cv.line(start_x-5, ly, start_x+total_w+5, ly)
+        ly = start_y + r * card_pt
+        cv.line(0, ly, page_w, ly)
 
 def generate_pdfs_from_tracks(tracks, out_dir, progress_callback=None):
     page_w, page_h = A4
