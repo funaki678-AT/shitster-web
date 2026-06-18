@@ -2,7 +2,7 @@ services:
   - type: web
     name: shitster-web
     runtime: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: apt-get install -y fonts-dejavu fonts-liberation && pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
       - key: SPOTIFY_CLIENT_ID

@@ -25,9 +25,16 @@ DECADE_COLORS = {
 }
 
 FONT_PATHS = {
-    "bold":    ["C:/Windows/Fonts/arialbd.ttf",  "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"],
-    "italic":  ["C:/Windows/Fonts/ariali.ttf",   "/usr/share/fonts/truetype/dejavu/DejaVuSans-Oblique.ttf"],
-    "regular": ["C:/Windows/Fonts/arial.ttf",    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"],
+    "bold":    ["C:/Windows/Fonts/arialbd.ttf",
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+                "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"],
+    "italic":  ["C:/Windows/Fonts/ariali.ttf",
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans-Oblique.ttf",
+                "/usr/share/fonts/truetype/liberation/LiberationSans-Italic.ttf",
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"],   # plain as last resort
+    "regular": ["C:/Windows/Fonts/arial.ttf",
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+                "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"],
 }
 
 def load_font(style, size):
