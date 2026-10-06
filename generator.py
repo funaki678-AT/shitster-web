@@ -13,16 +13,21 @@ COLS   = 3
 ROWS   = 4
 GAP_MM = 0
 
-DECADE_COLORS = {
-    1950: ("#311B92", "#4527A0"),
-    1960: ("#BF360C", "#E64A19"),
-    1970: ("#E65100", "#F57C00"),
-    1980: ("#880E4F", "#C2185B"),
-    1990: ("#004D40", "#00695C"),
-    2000: ("#0D47A1", "#1565C0"),
-    2010: ("#1B5E20", "#2E7D32"),
-    2020: ("#B71C1C", "#D32F2F"),
-}
+# Colors are assigned per track (not per decade) so they don't reveal the year
+CARD_COLORS = [
+    ("#311B92", "#6A1B9A"),  # deep purple
+    ("#BF360C", "#E64A19"),  # deep orange
+    ("#0D47A1", "#1565C0"),  # deep blue
+    ("#880E4F", "#C2185B"),  # pink
+    ("#004D40", "#00695C"),  # teal
+    ("#1B5E20", "#2E7D32"),  # green
+    ("#B71C1C", "#D32F2F"),  # red
+    ("#E65100", "#F57C00"),  # orange
+    ("#1A237E", "#283593"),  # indigo
+    ("#006064", "#00838F"),  # cyan
+    ("#4A148C", "#6A1B9A"),  # purple
+    ("#33691E", "#558B2F"),  # light green
+]
 
 FONT_PATHS = {
     "bold":    ["C:/Windows/Fonts/arialbd.ttf",
@@ -43,9 +48,9 @@ def load_font(style, size):
             return ImageFont.truetype(path, size)
     return ImageFont.load_default()
 
-def get_decade_colors(year):
-    decade = (year // 10) * 10
-    return DECADE_COLORS.get(decade, ("#212121", "#424242"))
+def get_card_colors(track_id):
+    idx = int(track_id[-4:], 16) % len(CARD_COLORS)
+    return CARD_COLORS[idx]
 
 def draw_gradient(img, color1, color2):
     draw = ImageDraw.Draw(img)
@@ -77,7 +82,7 @@ def draw_multiline(d, lines, font, cx, y, fill, spacing=1.2):
     return y
 
 def make_back(track):
-    c1, c2 = get_decade_colors(int(track["year"]))
+    c1, c2 = get_card_colors(track["track_id"])
     img = Image.new("RGB", (PX, PX))
     draw_gradient(img, c1, c2)
     d   = ImageDraw.Draw(img)
@@ -109,7 +114,7 @@ def make_back(track):
     return img
 
 def make_front(track):
-    c1, c2 = get_decade_colors(int(track["year"]))
+    c1, c2 = get_card_colors(track["track_id"])
     img = Image.new("RGB", (PX, PX))
     draw_gradient(img, c1, c2)
 
