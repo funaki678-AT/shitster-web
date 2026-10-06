@@ -49,7 +49,7 @@ def load_font(style, size):
     return ImageFont.load_default()
 
 def get_card_colors(track_id):
-    idx = int(track_id[-4:], 16) % len(CARD_COLORS)
+    idx = sum(ord(c) for c in track_id) % len(CARD_COLORS)
     return CARD_COLORS[idx]
 
 def draw_gradient(img, color1, color2):
