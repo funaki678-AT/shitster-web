@@ -3,7 +3,7 @@ import requests
 import spotipy
 from flask import (Flask, render_template, request, redirect,
                    session, send_file, jsonify, url_for)
-from generator import generate_pdfs_from_tracks, get_tracks_from_playlist
+from generator import generate_pdfs_from_tracks, get_tracks_from_playlist, get_original_year
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", secrets.token_hex(32))
@@ -124,13 +124,26 @@ def run_generation(job_id, token, playlist_urls):
 
         jobs[job_id]["total"]   = len(all_tracks)
         jobs[job_id]["message"] = (
-            f"{len(all_tracks)} Lieder gefunden – erstelle Karten…"
+            f"{len(all_tracks)} Lieder gefunden – suche Original-Erscheinungsjahre…"
         )
+
+        # MusicBrainz year lookup (progress 20–70%)
+        for i, track in enumerate(all_tracks):
+            jobs[job_id]["message"]  = (
+                f"Erscheinungsjahr: {track['artists']} – {track['name']} "
+                f"({i+1}/{len(all_tracks)})…"
+            )
+            jobs[job_id]["progress"] = 20 + int((i + 1) / len(all_tracks) * 50)
+            track["year"] = get_original_year(
+                track["artists"], track["name"], track["year"]
+            )
+
+        jobs[job_id]["message"] = f"Erstelle {len(all_tracks)} Karten…"
 
         out_dir = tempfile.mkdtemp()
 
         def progress_cb(current, total):
-            jobs[job_id]["progress"] = 20 + int(current / total * 75)
+            jobs[job_id]["progress"] = 70 + int(current / total * 25)
             jobs[job_id]["message"]  = f"Erstelle Karte {current} von {total}…"
 
         front, back, duplex = generate_pdfs_from_tracks(all_tracks, out_dir, progress_cb)

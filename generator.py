@@ -1,4 +1,5 @@
-import os, io, math
+import os, io, math, time
+import requests as _requests
 import qrcode
 from PIL import Image, ImageDraw, ImageFont
 from reportlab.lib.pagesizes import A4
@@ -80,6 +81,48 @@ def draw_multiline(d, lines, font, cx, y, fill, spacing=1.2):
         d.text((cx, y), line, font=font, fill=fill, anchor="mt")
         y += lh
     return y
+
+_MB_UA = "ShitsterCardGenerator/1.0"
+_year_cache = {}  # (artist, title) -> year string
+
+def get_original_year(artist, title, spotify_year):
+    key = (artist.lower(), title.lower())
+    if key in _year_cache:
+        return _year_cache[key]
+
+    def escape(s):
+        return s.replace('"', '\\"')
+
+    try:
+        query = f'recording:"{escape(title)}" AND artist:"{escape(artist)}"'
+        resp = _requests.get(
+            "https://musicbrainz.org/ws/2/recording",
+            params={"query": query, "fmt": "json", "limit": 5},
+            headers={"User-Agent": _MB_UA},
+            timeout=8,
+        )
+        if resp.status_code != 200:
+            _year_cache[key] = spotify_year
+            return spotify_year
+
+        earliest = None
+        for rec in resp.json().get("recordings", []):
+            for rel in rec.get("releases", []):
+                date = rel.get("date", "") or ""
+                if len(date) >= 4 and date[:4].isdigit():
+                    y = int(date[:4])
+                    if earliest is None or y < earliest:
+                        earliest = y
+
+        result = str(earliest) if earliest and earliest <= int(spotify_year) else spotify_year
+        _year_cache[key] = result
+        return result
+    except Exception:
+        _year_cache[key] = spotify_year
+        return spotify_year
+    finally:
+        time.sleep(1.1)  # MusicBrainz rate limit: max 1 req/sec
+
 
 def make_back(track):
     c1, c2 = get_card_colors(track["track_id"])
